@@ -1,0 +1,26 @@
+.events-hero {
+  background:
+    linear-gradient(120deg, rgba(12, 52, 40, 0.84), rgba(12, 52, 40, 0.58)),
+    url('https://images.unsplash.com/photo-1519167758481-83f150bd4e3e?w=1600') center/cover;
+}
+
+.events-hall-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.events-wedding-thumbs {
+  margin-top: 1rem;
+}
+
+.events-wedding-thumbs img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.events-wedding-spotlight {
+  align-items: start;
+}

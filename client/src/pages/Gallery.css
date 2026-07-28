@@ -1,0 +1,149 @@
+.gallery-hero {
+  background:
+    linear-gradient(120deg, rgba(12, 52, 40, 0.84), rgba(12, 52, 40, 0.58)),
+    url('https://images.unsplash.com/photo-1519167758481-83f150bd4e3e?w=1600') center/cover;
+}
+
+.gallery-featured {
+  margin-bottom: 2.5rem;
+}
+
+.gallery-feature-card .pad {
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+
+.gallery-feature-card h2 {
+  font-size: 1.35rem;
+}
+
+.gallery-thumb-btn {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.gallery-thumb-btn img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.play-tag {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  background: rgba(17, 75, 58, 0.92);
+  color: var(--gold);
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.gallery-card {
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: white;
+}
+
+.gallery-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #0c3428;
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.gallery-card:hover .gallery-thumb img {
+  transform: scale(1.06);
+}
+
+.play-badge {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(212, 175, 55, 0.95);
+  color: #0c3428;
+  font-size: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.gallery-card .pad {
+  padding: 0.95rem 1.05rem 1.15rem;
+}
+
+.gallery-card strong {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--primary);
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(8, 24, 18, 0.9);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.lightbox-panel {
+  width: min(960px, 100%);
+  background: #0c3428;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.lightbox-panel iframe,
+.lightbox-panel img {
+  width: 100%;
+  display: block;
+  min-height: 50vh;
+  max-height: 70vh;
+  object-fit: contain;
+  background: #000;
+  border: 0;
+}
+
+.lightbox-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+}
+
+.lightbox-meta h3 {
+  color: white;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 700px) {
+  .lightbox-meta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

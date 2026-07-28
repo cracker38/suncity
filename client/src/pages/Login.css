@@ -1,0 +1,72 @@
+.login-page {
+  min-height: calc(100vh - var(--nav-h));
+  display: grid;
+  align-items: center;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 35%),
+    linear-gradient(180deg, #f8f8f8, #eef3f0);
+}
+
+.login-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.login-card,
+.login-demos {
+  padding: 1.6rem;
+}
+
+.login-eyebrow {
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.login-links {
+  margin-top: 1rem;
+}
+
+.demo-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.demo-item {
+  text-align: left;
+  border: 1px solid rgba(17, 75, 58, 0.12);
+  background: #f7faf8;
+  border-radius: 12px;
+  padding: 0.8rem 0.95rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.demo-item:hover {
+  border-color: var(--gold);
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.demo-item strong {
+  display: block;
+  color: var(--primary);
+}
+
+.demo-item span,
+.demo-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .login-grid {
+    grid-template-columns: 1fr;
+  }
+}
