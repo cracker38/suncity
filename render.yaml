@@ -4,7 +4,7 @@ services:
     runtime: node
     rootDir: server
     buildCommand: npm install
-    startCommand: node src/scripts/importDb.js && node src/index.js
+    startCommand: node src/index.js
     envVars:
       - key: NODE_ENV
         value: production

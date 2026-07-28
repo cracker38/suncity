@@ -93,8 +93,53 @@ async function init() {
   return _pool;
 }
 
+// Auto-seed SQLite on first boot
+async function autoSeed() {
+  if (config.db.driver !== 'sqlite') return;
+  const { default: Database } = await import('better-sqlite3');
+  const fs = await import('fs');
+  const path2 = await import('path');
+  const { fileURLToPath: ftu } = await import('url');
+  const bcrypt = await import('bcryptjs');
+
+  const dbPath = path.isAbsolute(config.db.sqlitePath)
+    ? config.db.sqlitePath
+    : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../', config.db.sqlitePath);
+
+  const db = new Database(dbPath);
+  const exists = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='users'`).get();
+  if (exists) { db.close(); return; }
+
+  console.log('[db] First boot — seeding SQLite...');
+  const sqlDir = path2.default.resolve(path.dirname(ftu(import.meta.url)), '../../sql');
+  db.pragma('foreign_keys = OFF');
+  db.pragma('journal_mode = WAL');
+
+  for (const file of ['schema.sqlite.sql', 'seed.sqlite.sql']) {
+    const sql = fs.default.readFileSync(path2.default.join(sqlDir, file), 'utf8');
+    for (const stmt of sql.split(';').map(s => s.trim()).filter(Boolean)) {
+      try { db.prepare(stmt).run(); } catch (e) {
+        if (!e.message.includes('already exists') && !e.message.includes('UNIQUE')) console.warn('[db]', e.message.slice(0, 80));
+      }
+    }
+  }
+
+  const PASSWORDS = {
+    'admin@suncity.rw': 'Admin@123', 'reception@suncity.rw': 'Staff@123',
+    'restaurant@suncity.rw': 'Staff@123', 'events@suncity.rw': 'Staff@123',
+    'ops@suncity.rw': 'Staff@123', 'finance@suncity.rw': 'Staff@123', 'guest@suncity.rw': 'Guest@123',
+  };
+  for (const [email, pwd] of Object.entries(PASSWORDS)) {
+    const hash = await bcrypt.default.hash(pwd, 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE email = ?').run(hash, email);
+  }
+  db.pragma('foreign_keys = ON');
+  db.close();
+  console.log('[db] SQLite seeded ✓');
+}
+
 // Start initialisation immediately (non-blocking)
-const _ready = init().catch((err) => {
+const _ready = autoSeed().then(() => init()).catch((err) => {
   console.error('[db] Connection failed:', err.message);
   process.exit(1);
 });
