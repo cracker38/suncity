@@ -26,9 +26,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// ── CORS — accept all configured origins (Vercel + localhost) ────────────────
+const ALLOWED_ORIGINS = [
+  ...config.clientUrl.split(',').map((u) => u.trim()).filter(Boolean),
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
 app.use(
   cors({
-    origin: config.clientUrl,
+    origin: (origin, cb) => {
+      // Allow server-to-server / curl (no origin header)
+      if (!origin) return cb(null, true);
+      if (ALLOWED_ORIGINS.some((o) => origin === o || origin.endsWith('.vercel.app'))) {
+        return cb(null, true);
+      }
+      cb(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   })
 );
@@ -46,11 +61,22 @@ app.use(
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
+// Root — fixes "Cannot GET /" on Render
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'SUN CITY NYAKARAMBI API',
+    hotel: config.hotel.name,
+    docs: '/api/health',
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: 'SUN CITY NYAKARAMBI API running',
     hotel: config.hotel.name,
+    db: config.db.driver,
   });
 });
 

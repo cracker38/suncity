@@ -3,6 +3,11 @@ import { pool } from '../config/db.js';
 import { ok, fail, asyncHandler } from '../utils/response.js';
 import { authenticate, requireRoles, optionalAuth } from '../middleware/auth.js';
 
+function lastDayOfMonth(yearMonth) {
+  const [y, m] = yearMonth.split('-').map(Number);
+  return new Date(y, m, 0).toISOString().slice(0, 10);
+}
+
 const router = Router();
 
 router.get(
@@ -69,8 +74,7 @@ router.get(
     if (!types.length) return fail(res, 'Room type not found', 404);
     const roomTypeId = types[0].id;
     const start = `${month}-01`;
-    const [endRow] = await pool.execute(`SELECT LAST_DAY(?) AS last_day`, [start]);
-    const end = endRow[0].last_day.toISOString?.().slice(0, 10) || String(endRow[0].last_day).slice(0, 10);
+    const end = lastDayOfMonth(month);
 
     const [bookings] = await pool.execute(
       `SELECT b.check_in, b.check_out, b.status

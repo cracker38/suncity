@@ -16,26 +16,26 @@ async function ensureAgentTable() {
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS agent_requests (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      request_code VARCHAR(40) NOT NULL UNIQUE,
+      request_code VARCHAR(50) NOT NULL UNIQUE,
       user_id INT NULL,
       session_id VARCHAR(100),
       guest_name VARCHAR(200),
-      guest_email VARCHAR(150),
-      guest_phone VARCHAR(30),
+      guest_email VARCHAR(200),
+      guest_phone VARCHAR(50),
       topic VARCHAR(200),
       message TEXT NOT NULL,
-      conversation_json JSON,
-      status ENUM('open','assigned','in_progress','resolved','closed') DEFAULT 'open',
-      priority ENUM('low','medium','high','urgent') DEFAULT 'medium',
+      conversation_json LONGTEXT,
+      status VARCHAR(50) DEFAULT 'open',
+      priority VARCHAR(50) DEFAULT 'medium',
       assigned_to INT NULL,
       staff_notes TEXT,
       resolved_at DATETIME NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      INDEX idx_agent_status (status),
-      INDEX idx_agent_created (created_at)
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
   `);
+  try { await pool.execute(`CREATE INDEX IF NOT EXISTS idx_agent_status ON agent_requests(status)`); } catch {}
+  try { await pool.execute(`CREATE INDEX IF NOT EXISTS idx_agent_created ON agent_requests(created_at)`); } catch {}
 }
 
 ensureAgentTable().catch((e) => console.error('agent_requests table:', e.message));
@@ -45,7 +45,7 @@ async function loadLiveContext() {
     `SELECT name, base_price, short_description, max_guests FROM room_types WHERE is_active = 1 ORDER BY base_price`
   );
   const [offers] = await pool.execute(
-    `SELECT title, discount_percent, coupon_code FROM offers WHERE is_active = 1 AND (end_date IS NULL OR end_date >= CURDATE()) LIMIT 8`
+    `SELECT title, discount_percent, coupon_code FROM offers WHERE is_active = 1 AND (end_date IS NULL OR end_date >= date('now')) LIMIT 8`
   );
   const [faqs] = await pool.execute(`SELECT question, answer FROM faqs WHERE is_active = 1 ORDER BY sort_order LIMIT 12`);
   const [halls] = await pool.execute(
@@ -301,7 +301,7 @@ router.get(
       sql += ` WHERE ar.status = ?`;
       params.push(status);
     }
-    sql += ` ORDER BY FIELD(ar.status,'open','assigned','in_progress','resolved','closed'), ar.created_at DESC LIMIT 200`;
+    sql += ` ORDER BY CASE ar.status WHEN 'open' THEN 1 WHEN 'assigned' THEN 2 WHEN 'in_progress' THEN 3 WHEN 'resolved' THEN 4 WHEN 'closed' THEN 5 ELSE 6 END, ar.created_at DESC LIMIT 200`;
     const [rows] = await pool.execute(sql, params);
     return ok(res, rows);
   })

@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: suncity-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node src/scripts/importDb.js && node src/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: CLIENT_URL
+        value: https://suncity-client.vercel.app
+
+      # ── Database (SQLite) ──────────────────────────────────────────────────
+      - key: DB_DRIVER
+        value: sqlite
+      - key: SQLITE_PATH
+        value: ./suncity.db
+
+      # ── Auth ──────────────────────────────────────────────────────────────
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
+
+      # ── Payments ──────────────────────────────────────────────────────────
+      - key: PAYMENT_MODE
+        value: sandbox
+
+      # ── AI (set values in Render dashboard) ───────────────────────────────
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Email ─────────────────────────────────────────────────────────────
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: suncitynyakarambi@gmail.com
+
+      # ── Hotel info ────────────────────────────────────────────────────────
+      - key: HOTEL_NAME
+        value: SUN CITY NYAKARAMBI Ltd
+      - key: HOTEL_PHONE
+        value: "+250780219057"
+      - key: HOTEL_PHONE_ALT
+        value: "+250788525507"
+      - key: HOTEL_EMAIL
+        value: suncitynyakarambi@gmail.com
+      - key: HOTEL_WHATSAPP
+        value: "250780219057"
+      - key: HOTEL_WEBSITE
+        value: https://www.suncity.rw
+      - key: HOTEL_ADDRESS
+        value: "Nyakarambi, Kirehe District, Eastern Province, Rwanda"

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
@@ -29,10 +29,11 @@ export default defineConfig({
   ],
 
   server: {
-    host: '0.0.0.0', // Allow access from other devices on the network
+    host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     open: false,
+    // In local dev, proxy /api → Express on :5000
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -63,4 +64,4 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 600,
   },
-});
+}));

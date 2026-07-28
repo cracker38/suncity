@@ -582,7 +582,7 @@
 .ok { color: #065f46; margin-top: 0.8rem; }
 .card small { color: var(--muted); display: block; }
 
-@media (max-width: 1000px) {
+@media (max-width: 1024px) {
   .services-grid,
   .attractions-grid,
   .testimonials-grid {
@@ -591,19 +591,33 @@
   .why-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .search-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 900px) {
-  .search-grid, .welcome-grid, .feature-row { grid-template-columns: 1fr; }
+  .welcome-grid,
+  .feature-row { grid-template-columns: 1fr; }
   .feature-row.reverse { direction: ltr; }
   .news-row { flex-direction: column; }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .search-grid { grid-template-columns: 1fr; }
   .services-grid,
   .attractions-grid,
   .testimonials-grid,
   .why-grid {
     grid-template-columns: 1fr;
   }
+  .stat-pill strong { font-size: 1.6rem; }
+  .hero-content { padding: 5rem 1rem 3rem; }
+  .hero-content h1 { font-size: clamp(1.8rem, 8vw, 2.8rem); }
+  .hero-sub { font-size: 1rem; }
+  .glass-card { padding: 1rem; }
+  .booking-search { margin-top: -1.5rem; }
+  .rounded-img { height: 220px; }
+  .news-row { gap: 0.5rem; }
+  .news-row input { font-size: 0.9rem; }
 }

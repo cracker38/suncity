@@ -83,6 +83,8 @@ router.post(
   })
 );
 
+router.get('/login', (req, res) => res.status(405).json({ success: false, message: 'Use POST /api/auth/login' }));
+
 router.post(
   '/login',
   validate(loginSchema),
@@ -113,7 +115,7 @@ router.post(
       refreshToken,
       expires,
     ]);
-    await pool.execute(`UPDATE users SET last_login = NOW() WHERE id = ?`, [user.id]);
+    await pool.execute(`UPDATE users SET last_login = datetime('now') WHERE id = ?`, [user.id]);
     await writeActivity({ userId: user.id, activity: 'login' });
     return ok(res, { user: publicUser(user), accessToken, refreshToken }, 'Login successful');
   })
@@ -131,7 +133,7 @@ router.post(
       return fail(res, 'Invalid refresh token', 401);
     }
     const [rows] = await pool.execute(
-      `SELECT * FROM refresh_tokens WHERE token = ? AND user_id = ? AND expires_at > NOW()`,
+      `SELECT * FROM refresh_tokens WHERE token = ? AND user_id = ? AND expires_at > datetime('now')`,
       [refreshToken, payload.id]
     );
     if (!rows.length) return fail(res, 'Refresh token expired', 401);
@@ -169,7 +171,7 @@ router.post(
     const { token, password } = req.body;
     if (!token || !password) return fail(res, 'Token and password required');
     const [rows] = await pool.execute(
-      `SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > NOW()`,
+      `SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > datetime('now')`,
       [token]
     );
     if (!rows.length) return fail(res, 'Invalid or expired token', 400);

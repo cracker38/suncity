@@ -80,8 +80,8 @@ router.post(
           `SELECT * FROM offers
            WHERE is_active = 1
              AND UPPER(coupon_code) = UPPER(?)
-             AND (start_date IS NULL OR start_date <= CURDATE())
-             AND (end_date IS NULL OR end_date >= CURDATE())
+             AND (start_date IS NULL OR start_date <= date('now'))
+             AND (end_date IS NULL OR end_date >= date('now'))
            LIMIT 1`,
           [String(coupon_code).trim()]
         );
@@ -305,7 +305,7 @@ router.post(
     }
 
     await pool.execute(
-      `UPDATE bookings SET status = 'cancelled', cancelled_at = NOW(), cancel_reason = ? WHERE id = ?`,
+      `UPDATE bookings SET status = 'cancelled', cancelled_at = datetime('now'), cancel_reason = ? WHERE id = ?`,
       [req.body.reason || null, booking.id]
     );
     if (booking.room_id) {
@@ -342,7 +342,7 @@ router.post(
       await pool.execute(`UPDATE rooms SET status = 'cleaning' WHERE id = ?`, [rows[0].room_id]);
       await pool.execute(
         `INSERT INTO housekeeping_tasks (room_id, task_type, status, scheduled_date)
-         VALUES (?, 'cleaning', 'pending', CURDATE())`,
+         VALUES (?, 'cleaning', 'pending', date('now'))`,
         [rows[0].room_id]
       );
     }

@@ -178,8 +178,8 @@ router.post('/orders', authenticate, requireRoles('admin', 'restaurant_manager')
     const qty = Math.max(1, Number(line.qty) || 1);
     await pool.execute(
       `UPDATE menu_items SET
-         stock_qty = GREATEST(0, stock_qty - ?),
-         is_available = CASE WHEN stock_qty - ? <= 0 THEN 0 ELSE is_available END
+         stock_qty = MAX(0, stock_qty - ?),
+         is_available = CASE WHEN (stock_qty - ?) <= 0 THEN 0 ELSE is_available END
        WHERE id = ?`,
       [qty, qty, line.id]
     );

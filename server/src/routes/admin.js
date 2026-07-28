@@ -63,10 +63,10 @@ router.get('/activity', asyncHandler(async (req, res) => {
 }));
 
 router.get('/health', asyncHandler(async (req, res) => {
-  const [db] = await pool.query('SELECT 1 AS ok');
+  const [db] = await pool.execute('SELECT 1 AS ok');
   return ok(res, {
     status: 'healthy',
-    database: db[0]?.ok === 1,
+    database: Array.isArray(db) ? true : db?.ok === 1,
     uptime: process.uptime(),
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString(),

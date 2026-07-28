@@ -4,6 +4,11 @@ import { ok, fail, asyncHandler } from '../utils/response.js';
 import { authenticate, requireRoles, optionalAuth } from '../middleware/auth.js';
 import { bookingCode } from '../utils/helpers.js';
 
+function lastDayOfMonth(yearMonth) {
+  const [y, m] = yearMonth.split('-').map(Number);
+  return new Date(y, m, 0).toISOString().slice(0, 10);
+}
+
 const router = Router();
 
 router.get('/halls', asyncHandler(async (req, res) => {
@@ -38,8 +43,7 @@ router.get('/calendar', asyncHandler(async (req, res) => {
   const month = req.query.month || new Date().toISOString().slice(0, 7);
   const hallId = req.query.hall_id;
   const start = `${month}-01`;
-  const [endRow] = await pool.execute(`SELECT LAST_DAY(?) AS last_day`, [start]);
-  const end = endRow[0].last_day.toISOString?.().slice(0, 10) || String(endRow[0].last_day).slice(0, 10);
+  const end = lastDayOfMonth(month);
 
   let sql = `SELECT eb.event_date, eb.hall_id, eb.status, eh.name AS hall_name, eb.event_type
              FROM event_bookings eb

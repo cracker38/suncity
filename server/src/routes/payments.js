@@ -185,16 +185,18 @@ async function ensureExpensesTable() {
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS expenses (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      description VARCHAR(255) NOT NULL,
+      description VARCHAR(500) NOT NULL,
       amount DECIMAL(12,2) NOT NULL,
-      category VARCHAR(50) DEFAULT 'operations',
+      category VARCHAR(100) DEFAULT 'operations',
       expense_date DATE NOT NULL,
       notes TEXT,
       created_by INT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_expense_date (expense_date)
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  try {
+    await pool.execute(`CREATE INDEX IF NOT EXISTS idx_expense_date ON expenses(expense_date)`);
+  } catch {}
 }
 ensureExpensesTable().catch((e) => console.error('expenses table:', e.message));
 

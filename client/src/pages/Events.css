@@ -24,3 +24,8 @@
 .events-wedding-spotlight {
   align-items: start;
 }
+
+@media (max-width: 768px) {
+  .events-hall-img { height: 160px; }
+  .events-wedding-thumbs img { height: 80px; }
+}

@@ -1,23 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../lib/authStore';
 import './Login.css';
-
-const DEMO_ACCOUNTS = [
-  { role: 'Customer', email: 'guest@suncity.rw', password: 'Guest@123', path: '/dashboard' },
-  { role: 'Reception', email: 'reception@suncity.rw', password: 'Staff@123', path: '/reception' },
-  { role: 'Restaurant', email: 'restaurant@suncity.rw', password: 'Staff@123', path: '/restaurant-desk' },
-  { role: 'Events', email: 'events@suncity.rw', password: 'Staff@123', path: '/events-desk' },
-  { role: 'Service Ops', email: 'ops@suncity.rw', password: 'Staff@123', path: '/ops' },
-  { role: 'Finance', email: 'finance@suncity.rw', password: 'Staff@123', path: '/finance' },
-  { role: 'Admin', email: 'admin@suncity.rw', password: 'Admin@123', path: '/admin' },
-];
 
 export default function Login() {
   const { login, dashboardPath } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '', totp: '' });
   const [needs2FA, setNeeds2FA] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,83 +18,169 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const data = await login(form);
-      const path = dashboardPath() || DEMO_ACCOUNTS.find((d) => d.email === data.user?.email)?.path || '/';
-      navigate(path);
+      await login(form);
+      navigate(dashboardPath());
     } catch (err) {
-      if (err.payload?.errors?.requires2FA) setNeeds2FA(true);
+      if (err.payload?.errors?.requires2FA || err.payload?.requires2FA) setNeeds2FA(true);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  function fillDemo(account) {
-    setForm({ email: account.email, password: account.password, totp: '' });
-    setError('');
-    setNeeds2FA(false);
-  }
-
   return (
-    <section className="login-page section">
-      <div className="container login-grid">
-        <form className="card login-card" onSubmit={submit}>
-          <p className="login-eyebrow">SUN CITY NYAKARAMBI</p>
-          <h1>Secure Login</h1>
-          <p>One login for all portals. You are redirected to your authorized dashboard.</p>
-          {error && <div className="alert alert-error">{error}</div>}
-          <div className="form-group">
-            <label className="label">Email</label>
-            <input
-              className="input"
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
+    <div className="auth-page">
+      {/* Left panel — branding */}
+      <div className="auth-panel-left">
+        <div className="auth-panel-left-inner">
+          <Link to="/" className="auth-logo">
+            <span className="auth-logo-mark">SC</span>
+            <span className="auth-logo-text">
+              <strong>SUN CITY</strong>
+              <small>NYAKARAMBI HOTEL</small>
+            </span>
+          </Link>
+
+          <div className="auth-panel-copy">
+            <h1>Welcome back</h1>
+            <p>
+              Sign in to access your portal — customer reservations, staff dashboards,
+              and hotel management tools, all in one place.
+            </p>
+            <div className="auth-features">
+              {[
+                { icon: '🛏', text: 'Manage your bookings & invoices' },
+                { icon: '🔒', text: 'Secure JWT authentication' },
+                { icon: '🤖', text: 'AI concierge & agent requests' },
+                { icon: '📊', text: 'Role-based staff dashboards' },
+              ].map((f) => (
+                <div key={f.text} className="auth-feature-item">
+                  <span className="auth-feature-icon">{f.icon}</span>
+                  <span>{f.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="form-group">
-            <label className="label">Password</label>
-            <input
-              className="input"
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
+
+          <div className="auth-panel-hotel">
+            <p>📍 Nyakarambi, Kirehe District, Rwanda</p>
+            <p>📞 +250 780 219 057</p>
           </div>
-          {needs2FA && (
-            <div className="form-group">
-              <label className="label">2FA Code</label>
-              <input
-                className="input"
-                value={form.totp}
-                onChange={(e) => setForm({ ...form, totp: e.target.value })}
-              />
+        </div>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="auth-panel-right">
+        <motion.div
+          className="auth-form-wrap"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="auth-form-header">
+            <p className="auth-eyebrow">Secure access</p>
+            <h2>Sign in to your account</h2>
+            <p className="auth-sub">
+              Don't have an account?{' '}
+              <Link to="/register" className="auth-link">Create one free</Link>
+            </p>
+          </div>
+
+          {error && (
+            <div className="auth-alert auth-alert-error">
+              <span>⚠</span> {error}
             </div>
           )}
-          <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-          <p className="login-links">
-            <Link to="/register">Create customer account</Link> · <Link to="/forgot-password">Forgot password</Link>
-          </p>
-        </form>
 
-        <aside className="card login-demos">
-          <h2>Demo role accounts</h2>
-          <p>Click an account to fill the login form, then Sign In.</p>
-          <div className="demo-list">
-            {DEMO_ACCOUNTS.map((a) => (
-              <button key={a.email} type="button" className="demo-item" onClick={() => fillDemo(a)}>
-                <strong>{a.role}</strong>
-                <span>{a.email}</span>
-                <small>{a.password}</small>
-              </button>
-            ))}
-          </div>
-        </aside>
+          <form onSubmit={submit} noValidate>
+            <div className="auth-field">
+              <label htmlFor="login-email">Email address</label>
+              <div className="auth-input-wrap">
+                <span className="auth-input-icon">✉</span>
+                <input
+                  id="login-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <div className="auth-field-row">
+                <label htmlFor="login-password">Password</label>
+                <Link to="/forgot-password" className="auth-link auth-link-sm">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="auth-input-wrap">
+                <span className="auth-input-icon">🔑</span>
+                <input
+                  id="login-password"
+                  type={showPwd ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setShowPwd((v) => !v)}
+                  aria-label={showPwd ? 'Hide password' : 'Show password'}
+                >
+                  {showPwd ? '🙈' : '👁'}
+                </button>
+              </div>
+            </div>
+
+            {needs2FA && (
+              <motion.div
+                className="auth-field"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+              >
+                <label htmlFor="login-totp">Two-factor authentication code</label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">🔐</span>
+                  <input
+                    id="login-totp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="6-digit code"
+                    value={form.totp}
+                    onChange={(e) => setForm({ ...form, totp: e.target.value })}
+                    autoFocus
+                  />
+                </div>
+                <p className="auth-hint">Enter the code from your authenticator app.</p>
+              </motion.div>
+            )}
+
+            <button
+              type="submit"
+              className="auth-submit-btn"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="auth-spinner" />
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          <p className="auth-footer-note">
+            By signing in you agree to our{' '}
+            <Link to="/about" className="auth-link">Terms of Service</Link>.
+          </p>
+        </motion.div>
       </div>
-    </section>
+    </div>
   );
 }

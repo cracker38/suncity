@@ -31,7 +31,7 @@ router.patch('/tasks/:id', asyncHandler(async (req, res) => {
   const { status, notes } = req.body;
   await pool.execute(
     `UPDATE housekeeping_tasks SET status = COALESCE(?, status), notes = COALESCE(?, notes),
-     completed_at = CASE WHEN ? = 'completed' THEN NOW() ELSE completed_at END
+     completed_at = CASE WHEN ? = 'completed' THEN datetime('now') ELSE completed_at END
      WHERE id = ?`,
     [status || null, notes || null, status || null, req.params.id]
   );

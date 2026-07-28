@@ -3,8 +3,16 @@ import ExcelJS from 'exceljs';
 import { pool } from '../config/db.js';
 import { ok, asyncHandler } from '../utils/response.js';
 import { authenticate, requireRoles } from '../middleware/auth.js';
+import { config } from '../config/index.js';
 
 const router = Router();
+
+// Cross-driver date helpers
+const isSqlite = config.db.driver === 'sqlite';
+const fmtMonth = isSqlite ? "strftime('%Y-%m', {col})" : "DATE_FORMAT({col}, '%Y-%m')";
+const today = isSqlite ? "date('now')" : 'CURDATE()';
+
+function monthFmt(col) { return fmtMonth.replace(/{col}/g, col); }
 
 router.get(
   '/overview',
@@ -12,47 +20,32 @@ router.get(
   requireRoles('admin', 'finance', 'receptionist', 'restaurant_manager', 'events_manager', 'service_ops'),
   asyncHandler(async (req, res) => {
     const [[bookingsToday]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM bookings WHERE DATE(created_at) = CURDATE()`
+      `SELECT COUNT(*) AS c FROM bookings WHERE ${isSqlite ? "date(created_at)" : "DATE(created_at)"} = ${today}`
     );
-    const [[availableRooms]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM rooms WHERE status = 'available'`
-    );
-    const [[occupiedRooms]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM rooms WHERE status = 'occupied'`
-    );
-    const [[revenue]] = await pool.query(
-      `SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status = 'completed'`
-    );
-    const [[restaurantSales]] = await pool.query(
-      `SELECT COALESCE(SUM(total_amount),0) AS total FROM restaurant_orders WHERE status != 'cancelled'`
-    );
-    const [[eventBookings]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM event_bookings WHERE status IN ('pending','confirmed')`
-    );
-    const [[cateringRequests]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM catering_requests WHERE status IN ('pending','quoted','confirmed')`
-    );
-    const [[cleaningPending]] = await pool.query(
-      `SELECT COUNT(*) AS c FROM housekeeping_tasks WHERE status IN ('pending','in_progress')`
-    );
-    const [[satisfaction]] = await pool.query(
-      `SELECT ROUND(AVG(rating),2) AS avg_rating FROM reviews WHERE is_approved = 1`
-    );
+    const [[availableRooms]] = await pool.query(`SELECT COUNT(*) AS c FROM rooms WHERE status = 'available'`);
+    const [[occupiedRooms]] = await pool.query(`SELECT COUNT(*) AS c FROM rooms WHERE status = 'occupied'`);
+    const [[revenue]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE status = 'completed'`);
+    const [[restaurantSales]] = await pool.query(`SELECT COALESCE(SUM(total_amount),0) AS total FROM restaurant_orders WHERE status != 'cancelled'`);
+    const [[eventBookings]] = await pool.query(`SELECT COUNT(*) AS c FROM event_bookings WHERE status IN ('pending','confirmed')`);
+    const [[cateringRequests]] = await pool.query(`SELECT COUNT(*) AS c FROM catering_requests WHERE status IN ('pending','quoted','confirmed')`);
+    const [[cleaningPending]] = await pool.query(`SELECT COUNT(*) AS c FROM housekeeping_tasks WHERE status IN ('pending','in_progress')`);
+    const [[satisfaction]] = await pool.query(`SELECT ROUND(AVG(rating),2) AS avg_rating FROM reviews WHERE is_approved = 1`);
+
     const [monthlyRevenue] = await pool.query(
-      `SELECT DATE_FORMAT(paid_at, '%Y-%m') AS month, SUM(amount) AS total
+      `SELECT ${monthFmt('paid_at')} AS month, SUM(amount) AS total
        FROM payments WHERE status = 'completed' AND paid_at IS NOT NULL
-       GROUP BY DATE_FORMAT(paid_at, '%Y-%m')
+       GROUP BY ${monthFmt('paid_at')}
        ORDER BY month DESC LIMIT 12`
     );
     const [bookingTrends] = await pool.query(
-      `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS total
-       FROM bookings GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+      `SELECT ${monthFmt('created_at')} AS month, COUNT(*) AS total
+       FROM bookings GROUP BY ${monthFmt('created_at')}
        ORDER BY month DESC LIMIT 12`
     );
     const [popularRooms] = await pool.query(
       `SELECT rt.name, COUNT(b.id) AS bookings
        FROM bookings b JOIN room_types rt ON rt.id = b.room_type_id
-       GROUP BY rt.id ORDER BY bookings DESC LIMIT 5`
+       GROUP BY rt.id, rt.name ORDER BY bookings DESC LIMIT 5`
     );
     const [[aiUsage]] = await pool.query(`SELECT COUNT(*) AS c FROM ai_conversations WHERE role = 'user'`);
 
@@ -139,13 +132,9 @@ router.get(
         `SELECT booking_code, guest_name, check_in, check_out, status, payment_status, total_amount FROM bookings`
       );
     } else if (type === 'payments') {
-      [rows] = await pool.execute(
-        `SELECT payment_ref, amount, method, status, paid_at FROM payments`
-      );
+      [rows] = await pool.execute(`SELECT payment_ref, amount, method, status, paid_at FROM payments`);
     } else if (type === 'occupancy') {
-      [rows] = await pool.execute(
-        `SELECT room_number, status, floor FROM rooms`
-      );
+      [rows] = await pool.execute(`SELECT room_number, status, floor FROM rooms`);
     } else {
       [rows] = await pool.execute(
         `SELECT invoice_number, amount, tax_amount, total_amount, status, issued_at FROM invoices`

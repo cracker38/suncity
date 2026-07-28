@@ -354,9 +354,43 @@ table.data tbody tr:hover { background: rgba(17,75,58,0.03); }
     transform: translateX(-105%);
     transition: transform 0.25s ease;
     box-shadow: 20px 0 50px rgba(0,0,0,0.25);
+    overflow-y: auto;
   }
 
   .dash.menu-open .dash-aside { transform: translateX(0); }
 
   .dash-user-chip div { display: none; }
+
+  .dash-content { padding: 1rem; }
+
+  .dash-top { padding: 0.75rem 1rem; }
+
+  .dash-breadcrumb { padding: 0.4rem 1rem; }
+}
+
+@media (max-width: 600px) {
+  .dash-content { padding: 0.75rem; }
+
+  .dash-top-title h1 { font-size: 1rem; }
+
+  /* Stack stat cards */
+  .dash-content .grid-4,
+  .dash-content .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Full-width tables with horizontal scroll */
+  .table-wrap { margin: 0 -0.75rem; border-radius: 0; }
+
+  table.data th,
+  table.data td { padding: 0.6rem 0.65rem; font-size: 0.8rem; white-space: nowrap; }
+
+  .dash-panel-title { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 380px) {
+  .dash-content .grid-4,
+  .dash-content .grid-3 {
+    grid-template-columns: 1fr;
+  }
 }
